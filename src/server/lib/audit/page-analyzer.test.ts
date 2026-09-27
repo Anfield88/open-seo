@@ -207,6 +207,26 @@ describe("analyzeHtml parity with the DOM reference", () => {
   });
 });
 
+describe("analyzeHtml word count", () => {
+  const wordCount = (body: string) =>
+    analyzeHtml(`<body>${body}</body>`, "https://example.com/", 200, 0)
+      .wordCount;
+
+  it("counts words in scripts written without spaces", () => {
+    expect(wordCount("<p>吉隆坡市中心永久地契公寓投资指南</p>")).toBe(8);
+    expect(wordCount("<p>東京の不動産投資ガイド</p>")).toBe(5);
+    expect(wordCount("<p>คอนโดใกล้รถไฟฟ้า</p>")).toBe(4);
+    expect(wordCount("<p>KLCC 公寓指南 2026</p>")).toBe(4);
+  });
+
+  it("keeps a full Chinese article above the thin-content threshold", () => {
+    const sentence =
+      "<p>吉隆坡市中心永久地契公寓投资指南，外国人购买条件与价格分析。</p>";
+    // A whitespace split counted these 20 sentences as a single word.
+    expect(wordCount(sentence.repeat(20))).toBeGreaterThan(150);
+  });
+});
+
 describe("analyzeHtml extraction caps", () => {
   it("caps links and images per page", () => {
     const links = Array.from(
